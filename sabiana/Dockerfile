@@ -10,8 +10,7 @@ RUN apk add --no-cache \
 # Install Python packages
 RUN pip3 install --no-cache-dir \
     pymodbus \
-    paho-mqtt \
-    homeassistant
+    paho-mqtt
 
 # Copy data for add-on
 COPY run.sh /
