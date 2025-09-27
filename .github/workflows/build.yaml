@@ -1,0 +1,66 @@
+name: "Build Add-ons"
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  information:
+    name: Gather add-on information
+    runs-on: ubuntu-latest
+    outputs:
+      changed_addons: ${{ steps.changed_addons.outputs.addons }}
+      changed: ${{ steps.changed_addons.outputs.changed }}
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Get changed add-ons
+        id: changed_addons
+        uses: home-assistant/actions/helpers/changed-addons@master
+
+  build:
+    name: Build ${{ matrix.addon }}
+    runs-on: ubuntu-latest
+    needs: information
+    if: needs.information.outputs.changed == 'true'
+    strategy:
+      matrix:
+        addon: ${{ fromJson(needs.information.outputs.changed_addons) }}
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Get information
+        id: info
+        uses: home-assistant/actions/helpers/info@master
+        with:
+          path: "./${{ matrix.addon }}"
+
+      - name: Check add-on
+        id: check
+        run: |
+          if [[ "${{ steps.info.outputs.architectures }}" =~ amd64 ]]; then
+            echo "build_arch=amd64" >> $GITHUB_OUTPUT
+            echo "build=true" >> $GITHUB_OUTPUT
+          else
+            echo "No amd64 architecture, skipping build"
+            echo "build=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Login to GitHub Container Registry
+        if: env.BUILD_ARGS != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build ${{ matrix.addon }}
+        if: steps.check.outputs.build == 'true'
+        uses: home-assistant/builder@master
+        with:
+          args: |
+            --${{ steps.check.outputs.build_arch }} \
+            --target /data/${{ matrix.addon }} \
+            --generic latest

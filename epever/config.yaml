@@ -1,0 +1,19 @@
+name: "Epever Integration"
+version: "1.0.0"
+slug: "epever"
+description: "Home Assistant integration for Epever solar charge controllers"
+url: "https://github.com/CMGeorge/ha_repository"
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+startup: application
+boot: auto
+init: false
+options:
+  log_level: "info"
+schema:
+  log_level: list(trace|debug|info|notice|warning|error|fatal)
+image: "ghcr.io/cmgeorge/epever-addon"
