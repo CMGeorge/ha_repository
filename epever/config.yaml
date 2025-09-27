@@ -15,4 +15,4 @@ init: false
 options:
   log_level: "info"
 schema:
-  log_level: list(trace|debug|info|notice|warning|error|fatal)
+  log_level: "list(trace|debug|info|notice|warning|error|fatal)?"
